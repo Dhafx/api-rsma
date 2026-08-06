@@ -3,6 +3,7 @@
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\KunjunganController;
+use App\Http\Controllers\Api\PenyakitController;
 
 // Route::get('/user', function (Request $request) {
 //     return $request->user();
@@ -11,7 +12,11 @@ use App\Http\Controllers\Api\KunjunganController;
 // Ralan
 Route::get('/kunjungan-ralan', [KunjunganController::class, 'jumlahRalan']);
 Route::get('/kunjungan-ralan/per-pj', [KunjunganController::class, 'jumlahRalanPerPj']);
+Route::get('/kunjungan-ralan/per-tanggal', [KunjunganController::class, 'jumlahRalanByDate']);
 
 // Ranap
 Route::get('/kunjungan-ranap', [KunjunganController::class, 'jumlahRanap']);
 Route::get('/kunjungan-ranap/per-pj', [KunjunganController::class, 'jumlahRanapPerPj']);
+
+// Penyakit
+Route::get('/penyakit-ralan/top10', [PenyakitController::class, 'top10Ralan']);

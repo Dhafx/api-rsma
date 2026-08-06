@@ -9,6 +9,30 @@ use Illuminate\Support\Facades\DB;
 
 class KunjunganController extends Controller
 {
+    public function jumlahRalanByDate(Request $request){
+        [$tanggalAwal, $tanggalAkhir] = $this->periodeDefault();
+
+        $tanggalAwal = $request->query('tanggal_awal', "2026-01-01");
+        $tanggalAkhir = $request->query('tanggal_awal', "2026-05-01");
+
+        try{
+            $jumlah = DB::table('reg_periksa')
+            ->where('status_lanjut', 'Ranap')
+            ->whereBetween('tgl_registrasi', [$tanggalAwal, $tanggalAkhir])
+            ->count();
+
+            return $this->successResponse([
+                
+                    'tanggal_awal' => $tanggalAwal,
+                    'tanggal_akhir' => $tanggalAkhir,
+                    'jumlah_kunjungan_ralan' => $jumlah,
+              
+            ]);
+        } catch (\Exception $e) {
+            return $this->errorResponse('Terjadi kesalahan pada server');
+        }
+    }
+
     public function jumlahRalan(Request $request){
         [$tanggalAwal, $tanggalAkhir] = $this->periodeDefault();
         $tanggalAwal = $request->query('tanggal_awal', $tanggalAwal);
@@ -31,6 +55,7 @@ class KunjunganController extends Controller
             return $this->errorResponse('Terjadi kesalahan pada server');
         }
     }
+
     public function jumlahRalanPerPj(Request $request){
         [$tanggalAwal, $tanggalAkhir] = $this->periodeDefault();
         $tanggalAwal = $request->query('tanggal_awal', $tanggalAwal);
