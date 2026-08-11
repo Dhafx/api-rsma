@@ -19,4 +19,5 @@ Route::get('/kunjungan-ranap', [KunjunganController::class, 'jumlahRanap']);
 Route::get('/kunjungan-ranap/per-pj', [KunjunganController::class, 'jumlahRanapPerPj']);
 
 // Penyakit
-Route::get('/penyakit-ralan/top10', [PenyakitController::class, 'top10Ralan']);
+Route::get('/penyakit-ralan/top10-ralan', [PenyakitController::class, 'top10Ralan']);
+Route::get('/penyakit-ralan/top10-ranap', [PenyakitController::class, 'top10Ranap']);
