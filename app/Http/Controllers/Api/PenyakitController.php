@@ -13,7 +13,7 @@ class PenyakitController extends Controller
     private array $kategoriPenyakit = [
         'kanker' => [
             'label' => 'Kanker (Neoplasma Ganas)',
-            'range' => ['C00', 'C97'],
+            'ranges' => [['C00', 'C97']],
             'kode_acuan' => [
                 'C34.9' => 'Kanker Paru',
                 'C50.9' => 'Kanker Payudara',
@@ -23,7 +23,7 @@ class PenyakitController extends Controller
         ],
         'jantung' => [
             'label' => 'Jantung & Pembuluh Darah',
-            'range' => ['I20', 'I52'],
+            'ranges' => [['I20', 'I52']],
             'kode_acuan' => [
                 'I21.9' => 'Infark Miokard Akut',
                 'I20.9' => 'Angina Pectoris',
@@ -33,27 +33,28 @@ class PenyakitController extends Controller
         ],
         'stroke' => [
             'label' => 'Stroke (Serebrovaskular)',
-            'range' => ['I60', 'I69'],
+            'ranges' => [['I60', 'I69']],
             'kode_acuan' => [
                 'I63.9' => 'Stroke Iskemik',
                 'I61.9' => 'Stroke Hemoragik',
-                'I64' => 'Stroke Tidak Spesifik',
+                'I64'   => 'Stroke Tidak Spesifik',
             ],
         ],
         'uronefro' => [
-        'label' => 'Ginjal & Saluran Kemih',
-        'ranges' => [
-            ['N00', 'N39'],
-            ['Q60', 'Q64'],
+            'label' => 'Ginjal & Saluran Kemih',
+            'ranges' => [
+                ['N00', 'N39'],
+                ['Q60', 'Q64'],
+            ],
+            'kode_acuan' => [
+                'N18.5' => 'Penyakit Ginjal Kronik Stadium 5',
+                'N18.9' => 'Penyakit Ginjal Kronik Tidak Spesifik',
+                'N20.0' => 'Batu Ginjal',
+                'N17.9' => 'Gagal Ginjal Akut',
+            ],
         ],
-        'kode_acuan' => [
-            'N18.5' => 'Penyakit Ginjal Kronik Stadium 5',
-            'N18.9' => 'Penyakit Ginjal Kronik Tidak Spesifik',
-            'N20.0' => 'Batu Ginjal',
-            'N17.9' => 'Gagal Ginjal Akut',
-        ],
-    ],
     ];
+
     
     public function top10Ralan(Request $request)
     {

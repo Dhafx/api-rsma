@@ -1,23 +1,81 @@
 # 📋 Dokumentasi API SIMRS
 
-API ini menyediakan data kunjungan dan penyakit dari Sistem Informasi Manajemen Rumah Sakit (SIMRS).
-Dibangun dengan **Laravel 12**, seluruh endpoint dilindungi dengan **API Key** dan mengembalikan data dalam format **JSON**.
+API ini menyediakan data kunjungan dan penyakit dari Sistem Informasi Manajemen Rumah Sakit (SIMRS) untuk kebutuhan integrasi data dengan instansi terkait.
 
 ---
 
-## 🔐 Autentikasi
+## 1. ℹ️ Informasi Umum
 
-Setiap request **wajib** menyertakan header berikut:
+| | |
+|---|---|
+| **Base URL** | `http://[IP_PUBLIK_RS]/api` |
+| **Format Data** | JSON |
+| **Metode Autentikasi** | Bearer Token (Static API Key) + IP Whitelisting |
 
+
+---
+
+## 2. 🔐 Autentikasi (Keamanan)
+
+Seluruh proses penarikan data dari API SIMRS wajib menyertakan **API Key yang valid**.
+API Key akan diberikan secara terpisah oleh **Tim IT Rumah Sakit** melalui jalur komunikasi yang aman.
+
+### Cara Penggunaan API Key
+
+Sertakan API Key pada **HTTP Header** di setiap request dengan format berikut:
+
+| Header | Nilai |
+|---|---|
+| `Authorization` | `Bearer [TOKEN_RAHASIA_YANG_DIBERIKAN]` |
+
+**Contoh header request:**
 ```http
-X-API-KEY: {api_key_anda}
+GET /api/kunjungan-ralan HTTP/1.1
+Host: \[IP_SERVER_RS\]
+Authorization: Bearer eyJhbGci...(token_anda)
 ```
 
-Request tanpa header ini akan mendapat respons `401 Unauthorized`.
+### ⚠️ Catatan Penting: IP Whitelisting
+
+Server kami menerapkan sistem **IP Whitelisting**. API Key Anda **hanya dapat digunakan dari alamat IP server instansi Anda** yang telah didaftarkan sebelumnya ke sistem kami.
+
+Jika request datang dari IP yang tidak terdaftar, API akan menolak dengan respons:
+```json
+{ "message": "Forbidden. IP address not allowed." }
+```
+
+**Langkah pendaftaran IP:** Hubungi Tim IT Rumah Sakit dan sampaikan alamat IP publik server instansi Anda untuk didaftarkan ke sistem whitelist.
+
+### Kode Respons Autentikasi
+
+| Kode | Kondisi | Pesan |
+|---|---|---|
+| `401` | Token tidak disertakan | `Unauthorized. Token not provided.` |
+| `401` | Token tidak valid / tidak aktif | `Unauthorized. Invalid or inactive token.` |
+| `403` | IP tidak terdaftar di whitelist | `Forbidden. IP address not allowed.` |
 
 ---
 
-## 📅 Sistem Periode Tanggal
+## 3. 🚀 Cara Penggunaan Cepat (Postman)
+
+Untuk mempermudah proses integrasi dan testing, kami menyediakan **Postman Collection** siap pakai yang dilampirkan bersama dokumen ini.
+
+**Langkah-langkah:**
+
+1. Download dan install aplikasi [Postman](https://www.postman.com/downloads/) jika belum ada.
+2. Buka Postman, klik tombol **Import** (pojok kiri atas).
+3. Pilih file **`API_SIMRS_Collection.json`** yang kami lampirkan.
+4. Daftar semua endpoint akan muncul di panel kiri.
+5. Pilih salah satu request, misal: `GET /kunjungan-ralan`.
+6. Buka tab **Authorization** → pilih tipe **Bearer Token**.
+7. Masukkan token rahasia yang telah diberikan ke kolom **Token**.
+8. Klik **Send** untuk melihat data.
+
+> 💡 **Tips:** Gunakan fitur **Environment** di Postman untuk menyimpan token dan base URL, sehingga tidak perlu mengisi ulang di setiap request.
+
+---
+
+## 4. 📅 Sistem Periode Tanggal
 
 Semua endpoint mendukung **3 cara penggunaan** yang konsisten:
 
@@ -25,7 +83,7 @@ Semua endpoint mendukung **3 cara penggunaan** yang konsisten:
 Tidak perlu mengirim parameter apapun. Sistem akan otomatis menentukan periode dari **tanggal 5 bulan ini** hingga **tanggal 4 bulan depan**.
 
 ```http
-GET /api/v1/kunjungan-ralan
+GET /api/kunjungan-ralan
 ```
 
 > **Logika periode default:**
@@ -39,7 +97,7 @@ GET /api/v1/kunjungan-ralan
 Kirim parameter `tanggal_awal` dan/atau `tanggal_akhir` untuk menentukan periode sendiri.
 
 ```http
-GET /api/v1/kunjungan-ralan?tanggal_awal=2026-01-01&tanggal_akhir=2026-01-31
+GET /api/kunjungan-ralan?tanggal_awal=2026-01-01&tanggal_akhir=2026-01-31
 ```
 
 | Parameter | Tipe | Wajib | Deskripsi |
@@ -54,7 +112,7 @@ Jika format tanggal yang dikirim **tidak sesuai** (`YYYY-MM-DD`), API akan langs
 
 **Contoh request salah:**
 ```http
-GET /api/v1/kunjungan-ralan?tanggal_awal=05-01-2026
+GET /api/kunjungan-ralan?tanggal_awal=05-01-2026
 ```
 
 **Respons error 422:**
@@ -113,13 +171,13 @@ GET /api/v1/kunjungan-ralan?tanggal_awal=05-01-2026
 
 ## 🏥 Endpoint: Kunjungan Rawat Jalan (Ralan)
 
-### `GET /api/v1/kunjungan-ralan`
+### `GET /api/kunjungan-ralan`
 Jumlah total kunjungan rawat jalan dalam satu periode.
 
 **Contoh Request:**
 ```http
-GET /api/v1/kunjungan-ralan
-GET /api/v1/kunjungan-ralan?tanggal_awal=2026-01-01&tanggal_akhir=2026-01-31
+GET /api/kunjungan-ralan
+GET /api/kunjungan-ralan?tanggal_awal=2026-01-01&tanggal_akhir=2026-01-31
 ```
 
 **Contoh Respons:**
@@ -137,13 +195,13 @@ GET /api/v1/kunjungan-ralan?tanggal_awal=2026-01-01&tanggal_akhir=2026-01-31
 
 ---
 
-### `GET /api/v1/kunjungan-ralan/per-pj`
+### `GET /api/kunjungan-ralan/per-pj`
 Jumlah kunjungan rawat jalan dikelompokkan per **jenis pembayaran** (BPJS, Umum, dll), diurutkan dari terbanyak.
 
 **Contoh Request:**
 ```http
-GET /api/v1/kunjungan-ralan/per-pj
-GET /api/v1/kunjungan-ralan/per-pj?tanggal_awal=2026-01-01&tanggal_akhir=2026-01-31
+GET /api/kunjungan-ralan/per-pj
+GET /api/kunjungan-ralan/per-pj?tanggal_awal=2026-01-01&tanggal_akhir=2026-01-31
 ```
 
 **Contoh Respons:**
@@ -164,28 +222,28 @@ GET /api/v1/kunjungan-ralan/per-pj?tanggal_awal=2026-01-01&tanggal_akhir=2026-01
 
 ---
 
-### `GET /api/v1/kunjungan-ralan/per-tanggal`
+### `GET /api/kunjungan-ralan/per-tanggal`
 Jumlah kunjungan rawat jalan dikelompokkan per tanggal dalam periode.
 
 **Contoh Request:**
 ```http
-GET /api/v1/kunjungan-ralan/per-tanggal
-GET /api/v1/kunjungan-ralan/per-tanggal?tanggal_awal=2026-01-01&tanggal_akhir=2026-01-31
+GET /api/kunjungan-ralan/per-tanggal
+GET /api/kunjungan-ralan/per-tanggal?tanggal_awal=2026-01-01&tanggal_akhir=2026-01-31
 ```
 
 ---
 
 ## 🛏️ Endpoint: Kunjungan Rawat Inap (Ranap)
 
-### `GET /api/v1/kunjungan-ranap`
+### `GET /api/kunjungan-ranap`
 Jumlah total kunjungan rawat inap dalam satu periode.
 
 > Data dihitung berdasarkan pasien **unik** (distinct `no_rawat`), mengecualikan status `Batal` dan rekam perpindahan kamar (`Pindah Kamar`).
 
 **Contoh Request:**
 ```http
-GET /api/v1/kunjungan-ranap
-GET /api/v1/kunjungan-ranap?tanggal_awal=2026-01-01&tanggal_akhir=2026-01-31
+GET /api/kunjungan-ranap
+GET /api/kunjungan-ranap?tanggal_awal=2026-01-01&tanggal_akhir=2026-01-31
 ```
 
 **Contoh Respons:**
@@ -203,15 +261,15 @@ GET /api/v1/kunjungan-ranap?tanggal_awal=2026-01-01&tanggal_akhir=2026-01-31
 
 ---
 
-### `GET /api/v1/kunjungan-ranap/per-pj`
+### `GET /api/kunjungan-ranap/per-pj`
 Jumlah kunjungan rawat inap dikelompokkan per **jenis pembayaran**, diurutkan dari terbanyak.
 
 > Data dihitung berdasarkan pasien **unik**, mengecualikan `Batal` dan `Pindah Kamar`.
 
 **Contoh Request:**
 ```http
-GET /api/v1/kunjungan-ranap/per-pj
-GET /api/v1/kunjungan-ranap/per-pj?tanggal_awal=2026-01-01&tanggal_akhir=2026-01-31
+GET /api/kunjungan-ranap/per-pj
+GET /api/kunjungan-ranap/per-pj?tanggal_awal=2026-01-01&tanggal_akhir=2026-01-31
 ```
 
 **Contoh Respons:**
@@ -234,15 +292,15 @@ GET /api/v1/kunjungan-ranap/per-pj?tanggal_awal=2026-01-01&tanggal_akhir=2026-01
 
 ## 🚨 Endpoint: Kunjungan IGD (Instalasi Gawat Darurat)
 
-### `GET /api/v1/kunjungan-igd`
+### `GET /api/kunjungan-igd`
 Jumlah total kunjungan IGD dalam satu periode.
 
 > Data dihitung berdasarkan pasien **unik** (distinct `no_rawat`) yang terdaftar di poliklinik IGD (`kd_poli = 'IGDK'`).
 
 **Contoh Request:**
 ```http
-GET /api/v1/kunjungan-igd
-GET /api/v1/kunjungan-igd?tanggal_awal=2026-01-01&tanggal_akhir=2026-01-31
+GET /api/kunjungan-igd
+GET /api/kunjungan-igd?tanggal_awal=2026-01-01&tanggal_akhir=2026-01-31
 ```
 
 **Contoh Respons:**
@@ -260,13 +318,13 @@ GET /api/v1/kunjungan-igd?tanggal_awal=2026-01-01&tanggal_akhir=2026-01-31
 
 ---
 
-### `GET /api/v1/kunjungan-igd/per-pj`
+### `GET /api/kunjungan-igd/per-pj`
 Jumlah kunjungan IGD dikelompokkan per **jenis pembayaran**, diurutkan dari terbanyak.
 
 **Contoh Request:**
 ```http
-GET /api/v1/kunjungan-igd/per-pj
-GET /api/v1/kunjungan-igd/per-pj?tanggal_awal=2026-01-01&tanggal_akhir=2026-01-31
+GET /api/kunjungan-igd/per-pj
+GET /api/kunjungan-igd/per-pj?tanggal_awal=2026-01-01&tanggal_akhir=2026-01-31
 ```
 
 **Contoh Respons:**
@@ -289,13 +347,13 @@ GET /api/v1/kunjungan-igd/per-pj?tanggal_awal=2026-01-01&tanggal_akhir=2026-01-3
 
 ## 🦠 Endpoint: Penyakit
 
-### `GET /api/v1/penyakit-ralan/top10-ralan`
+### `GET /api/penyakit-ralan/top10-ralan`
 Top 10 penyakit terbanyak pada pasien **rawat jalan**, berdasarkan diagnosa **primer** (prioritas 1).
 
 **Contoh Request:**
 ```http
-GET /api/v1/penyakit-ralan/top10-ralan
-GET /api/v1/penyakit-ralan/top10-ralan?tanggal_awal=2026-01-01&tanggal_akhir=2026-01-31
+GET /api/penyakit-ralan/top10-ralan
+GET /api/penyakit-ralan/top10-ralan?tanggal_awal=2026-01-01&tanggal_akhir=2026-01-31
 ```
 
 **Contoh Respons:**
@@ -316,13 +374,13 @@ GET /api/v1/penyakit-ralan/top10-ralan?tanggal_awal=2026-01-01&tanggal_akhir=202
 
 ---
 
-### `GET /api/v1/penyakit-ranap/top10-ranap`
+### `GET /api/penyakit-ranap/top10-ranap`
 Top 10 penyakit terbanyak pada pasien **rawat inap**, berdasarkan diagnosa **primer** (prioritas 1).
 
 **Contoh Request:**
 ```http
-GET /api/v1/penyakit-ranap/top10-ranap
-GET /api/v1/penyakit-ranap/top10-ranap?tanggal_awal=2026-01-01&tanggal_akhir=2026-01-31
+GET /api/penyakit-ranap/top10-ranap
+GET /api/penyakit-ranap/top10-ranap?tanggal_awal=2026-01-01&tanggal_akhir=2026-01-31
 ```
 
 **Contoh Respons:**
@@ -342,7 +400,7 @@ GET /api/v1/penyakit-ranap/top10-ranap?tanggal_awal=2026-01-01&tanggal_akhir=202
 
 ---
 
-### `GET /api/v1/penyakit/kanker`
+### `GET /api/penyakit/kanker`
 Jumlah kasus **Kanker (Neoplasma Ganas)** — gabungan Ralan + Ranap.
 
 Rentang kode ICD-10: `C00` – `C97`
@@ -371,7 +429,7 @@ Rentang kode ICD-10: `C00` – `C97`
 
 ---
 
-### `GET /api/v1/penyakit/jantung`
+### `GET /api/penyakit/jantung`
 Jumlah kasus **Jantung & Pembuluh Darah** — gabungan Ralan + Ranap.
 
 Rentang kode ICD-10: `I20` – `I52`
@@ -380,7 +438,7 @@ Rentang kode ICD-10: `I20` – `I52`
 
 ---
 
-### `GET /api/v1/penyakit/stroke`
+### `GET /api/penyakit/stroke`
 Jumlah kasus **Stroke (Serebrovaskular)** — gabungan Ralan + Ranap.
 
 Rentang kode ICD-10: `I60` – `I69`
@@ -389,7 +447,7 @@ Rentang kode ICD-10: `I60` – `I69`
 
 ---
 
-### `GET /api/v1/penyakit/uronefro`
+### `GET /api/penyakit/uronefro`
 Jumlah kasus **Ginjal & Saluran Kemih** — gabungan Ralan + Ranap.
 
 Rentang kode ICD-10: `N00`–`N39` dan `Q60`–`Q64`
@@ -402,19 +460,19 @@ Rentang kode ICD-10: `N00`–`N39` dan `Q60`–`Q64`
 
 | Method | Endpoint | Deskripsi |
 |---|---|---|
-| `GET` | `/api/v1/kunjungan-ralan` | Total kunjungan rawat jalan |
-| `GET` | `/api/v1/kunjungan-ralan/per-pj` | Kunjungan ralan per jenis pembayaran |
-| `GET` | `/api/v1/kunjungan-ralan/per-tanggal` | Kunjungan ralan per tanggal |
-| `GET` | `/api/v1/kunjungan-ranap` | Total kunjungan rawat inap |
-| `GET` | `/api/v1/kunjungan-ranap/per-pj` | Kunjungan ranap per jenis pembayaran |
-| `GET` | `/api/v1/kunjungan-igd` | Total kunjungan IGD |
-| `GET` | `/api/v1/kunjungan-igd/per-pj` | Kunjungan IGD per jenis pembayaran |
-| `GET` | `/api/v1/penyakit-ralan/top10-ralan` | Top 10 penyakit rawat jalan |
-| `GET` | `/api/v1/penyakit-ranap/top10-ranap` | Top 10 penyakit rawat inap |
-| `GET` | `/api/v1/penyakit/kanker` | Kasus kanker (Ralan + Ranap) |
-| `GET` | `/api/v1/penyakit/jantung` | Kasus jantung & pembuluh darah (Ralan + Ranap) |
-| `GET` | `/api/v1/penyakit/stroke` | Kasus stroke (Ralan + Ranap) |
-| `GET` | `/api/v1/penyakit/uronefro` | Kasus ginjal & saluran kemih (Ralan + Ranap) |
+| `GET` | `/api/kunjungan-ralan` | Total kunjungan rawat jalan |
+| `GET` | `/api/kunjungan-ralan/per-pj` | Kunjungan ralan per jenis pembayaran |
+| `GET` | `/api/kunjungan-ralan/per-tanggal` | Kunjungan ralan per tanggal |
+| `GET` | `/api/kunjungan-ranap` | Total kunjungan rawat inap |
+| `GET` | `/api/kunjungan-ranap/per-pj` | Kunjungan ranap per jenis pembayaran |
+| `GET` | `/api/kunjungan-igd` | Total kunjungan IGD |
+| `GET` | `/api/kunjungan-igd/per-pj` | Kunjungan IGD per jenis pembayaran |
+| `GET` | `/api/penyakit-ralan/top10-ralan` | Top 10 penyakit rawat jalan |
+| `GET` | `/api/penyakit-ranap/top10-ranap` | Top 10 penyakit rawat inap |
+| `GET` | `/api/penyakit/kanker` | Kasus kanker (Ralan + Ranap) |
+| `GET` | `/api/penyakit/jantung` | Kasus jantung & pembuluh darah (Ralan + Ranap) |
+| `GET` | `/api/penyakit/stroke` | Kasus stroke (Ralan + Ranap) |
+| `GET` | `/api/penyakit/uronefro` | Kasus ginjal & saluran kemih (Ralan + Ranap) |
 
 > **Semua endpoint** menerima parameter opsional `tanggal_awal` dan `tanggal_akhir` (format `YYYY-MM-DD`).
 > Jika tidak dikirim, sistem menggunakan **periode default otomatis** (tanggal 5 – tanggal 4 bulan depan).
