@@ -64,7 +64,7 @@ Untuk mempermudah proses integrasi dan testing, kami menyediakan **Postman Colle
 
 1. Download dan install aplikasi [Postman](https://www.postman.com/downloads/) jika belum ada.
 2. Buka Postman, klik tombol **Import** (pojok kiri atas).
-3. Pilih file **`API_SIMRS_Collection.json`** yang kami lampirkan.
+3. Pilih file **`API RS Manambai Abdul Kadir.postman_collection.json`** yang kami lampirkan.
 4. Daftar semua endpoint akan muncul di panel kiri.
 5. Pilih salah satu request, misal: `GET /kunjungan-ralan`.
 6. Buka tab **Authorization** → pilih tipe **Bearer Token**.
