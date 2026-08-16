@@ -26,7 +26,7 @@ Sertakan API Key pada **HTTP Header** di setiap request dengan format berikut:
 
 | Header | Nilai |
 |---|---|
-| `Authorization` | `Bearer [TOKEN_RAHASIA_YANG_DIBERIKAN]` |
+| `Authorization` | `Bearer [TOKEN_YANG_DIBERIKAN]` |
 
 **Contoh header request:**
 ```http
