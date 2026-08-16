@@ -57,10 +57,7 @@ class PenyakitController extends Controller
     
     public function top10Ralan(Request $request)
     {
-        [$tanggalAwal, $tanggalAkhir] = $this->periodeDefault();
-        $tanggalAwal = $request->query('tanggal_awal', $tanggalAwal);
-        $tanggalAkhir = $request->query('tanggal_akhir', $tanggalAkhir);
-
+        [$tanggalAwal, $tanggalAkhir] = $this->resolveTanggal($request);
         try {
             $data = DB::table('penyakit')
                 ->join('diagnosa_pasien', 'penyakit.kd_penyakit', '=', 'diagnosa_pasien.kd_penyakit')
@@ -90,10 +87,7 @@ class PenyakitController extends Controller
     }
 
     public function top10Ranap(Request $request){
-        [$tanggalAwal, $tanggalAkhir] = $this->periodeDefault();
-        $tanggalAwal = $request->query('tanggal_awal', $tanggalAwal);
-        $tanggalAkhir = $request->query('tanggal_akhir', $tanggalAkhir);
-
+        [$tanggalAwal, $tanggalAkhir] = $this->resolveTanggal($request);
         try {
         $data = DB::table('penyakit')
             ->join('diagnosa_pasien', 'penyakit.kd_penyakit', '=', 'diagnosa_pasien.kd_penyakit')
@@ -165,10 +159,7 @@ public function uronefro(Request $request)
  */
 private function responkategoriPenyakit(Request $request, string $key)
 {
-    [$tanggalAwal, $tanggalAkhir] = $this->periodeDefault();
-    $tanggalAwal = $request->query('tanggal_awal', $tanggalAwal);
-    $tanggalAkhir = $request->query('tanggal_akhir', $tanggalAkhir);
-
+    [$tanggalAwal, $tanggalAkhir] = $this->resolveTanggal($request);
     try {
         $kategori = $this->kategoriPenyakit[$key];
 
@@ -234,19 +225,6 @@ private function responkategoriPenyakit(Request $request, string $key)
     return $query->count(DB::raw('distinct reg_periksa.no_rawat'));
 }
 
-    private function periodeDefault(): array
-    {
-        $hariIni = Carbon::now();
 
-        if ($hariIni->day >= 5) {
-            $awal = $hariIni->copy()->day(5);
-        } else {
-            $awal = $hariIni->copy()->subMonthNoOverflow()->day(5);
-        }
-
-        $akhir = $awal->copy()->addMonthNoOverflow()->subDay();
-
-        return [$awal->toDateString(), $akhir->toDateString()];
-    }
 
 }

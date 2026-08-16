@@ -10,11 +10,7 @@ use Illuminate\Support\Facades\DB;
 class KunjunganController extends Controller
 {
     public function jumlahRalanByDate(Request $request){
-        [$tanggalAwal, $tanggalAkhir] = $this->periodeDefault();
-
-        $tanggalAwal = $request->query('tanggal_awal', "2026-01-01");
-        $tanggalAkhir = $request->query('tanggal_awal', "2026-05-01");
-
+        [$tanggalAwal, $tanggalAkhir] = $this->resolveTanggal($request);
         try{
             $jumlah = DB::table('reg_periksa')
             ->where('status_lanjut', 'Ranap')
@@ -34,10 +30,7 @@ class KunjunganController extends Controller
     }
 
     public function jumlahRalan(Request $request){
-        [$tanggalAwal, $tanggalAkhir] = $this->periodeDefault();
-        $tanggalAwal = $request->query('tanggal_awal', $tanggalAwal);
-        $tanggalAkhir = $request->query('tanggal_awal', $tanggalAkhir);
-
+        [$tanggalAwal, $tanggalAkhir] = $this->resolveTanggal($request);
         try{
             $jumlah = DB::table('reg_periksa')
             ->where('status_lanjut', 'Ranap')
@@ -57,10 +50,7 @@ class KunjunganController extends Controller
     }
 
     public function jumlahRalanPerPj(Request $request){
-        [$tanggalAwal, $tanggalAkhir] = $this->periodeDefault();
-        $tanggalAwal = $request->query('tanggal_awal', $tanggalAwal);
-        $tanggalAkhir = $request->query('tanggal_awal', $tanggalAkhir);
-
+        [$tanggalAwal, $tanggalAkhir] = $this->resolveTanggal($request);
         try {
         $data = DB::table('reg_periksa')
             ->join('penjab', 'reg_periksa.kd_pj', '=', 'penjab.kd_pj')
@@ -87,10 +77,7 @@ class KunjunganController extends Controller
         
     }
     public function jumlahRanap(Request $request){
-        [$tanggalAwal, $tanggalAkhir] = $this->periodeDefault();
-        $tanggalAwal = $request->query('tanggal_awal', $tanggalAwal);
-        $tanggalAkhir = $request->query('tanggal_awal', $tanggalAkhir);
-
+        [$tanggalAwal, $tanggalAkhir] = $this->resolveTanggal($request);
         try{
             $jumlah = DB::table('reg_periksa')
             ->join('kamar_inap', 'reg_periksa.no_rawat', '=', "kamar_inap.no_rawat")
@@ -113,10 +100,7 @@ class KunjunganController extends Controller
         }
     }
     public function jumlahRanapPerPj(Request $request){
-        [$tanggalAwal, $tanggalAkhir] = $this->periodeDefault();
-        $tanggalAwal = $request->query('tanggal_awal', $tanggalAwal);
-        $tanggalAkhir = $request->query('tanggal_awal', $tanggalAkhir);
-
+        [$tanggalAwal, $tanggalAkhir] = $this->resolveTanggal($request);
         try {
         $data = DB::table('reg_periksa')
             ->join('kamar_inap', 'reg_periksa.no_rawat', '=', 'kamar_inap.no_rawat')
@@ -142,24 +126,61 @@ class KunjunganController extends Controller
     } catch (\Exception $e) {
         return $this->errorResponse('Terjadi kesalahan pada server');
     }
-
-        
     }
 
-    private function periodeDefault(): array
-    {
-        $hariIni = Carbon::now();
+    public function jumlahIgd(Request $request)
+{
+    [$tanggalAwal, $tanggalAkhir] = $this->resolveTanggal($request);
 
-        if ($hariIni->day >= 5) {
-            $awal = $hariIni->copy()->day(5);
-        } else {
-            $awal = $hariIni->copy()->subMonthNoOverflow()->day(5);
-        }
+    try {
+        $jumlah = DB::table('reg_periksa')
+            ->join('poliklinik', 'reg_periksa.kd_poli', '=', 'poliklinik.kd_poli')
+            ->where('poliklinik.kd_poli', 'IGDK')
+            ->whereBetween('reg_periksa.tgl_registrasi', [$tanggalAwal, $tanggalAkhir])
+            ->count(DB::raw('distinct reg_periksa.no_rawat'));
 
-        $akhir = $awal->copy()->addMonthNoOverflow()->subDay();
-
-        return [$awal->toDateString(), $akhir->toDateString()];
+        return $this->successResponse([
+            'tanggal_awal' => $tanggalAwal,
+            'tanggal_akhir' => $tanggalAkhir,
+            'jumlah_kunjungan_igd' => $jumlah,
+        ]);
+    } catch (\Exception $e) {
+        return $this->errorResponse('Terjadi kesalahan pada server');
     }
+}
+
+/**
+ * GET /api/v1/kunjungan-igd/per-pj
+ * Jumlah kunjungan IGD, dikelompokkan per jenis pembayaran
+ */
+public function jumlahIgdPerPj(Request $request)
+{
+   [$tanggalAwal, $tanggalAkhir] = $this->resolveTanggal($request);
+
+    try {
+        $data = DB::table('reg_periksa')
+            ->join('poliklinik', 'reg_periksa.kd_poli', '=', 'poliklinik.kd_poli')
+            ->join('penjab', 'reg_periksa.kd_pj', '=', 'penjab.kd_pj')
+            ->select(
+                'penjab.kd_pj',
+                'penjab.png_jawab as jenis_pembayaran',
+                DB::raw('count(distinct reg_periksa.no_rawat) as jumlah_kunjungan')
+            )
+            ->where('poliklinik.kd_poli', 'IGDK')
+            ->whereBetween('reg_periksa.tgl_registrasi', [$tanggalAwal, $tanggalAkhir])
+            ->groupBy('penjab.kd_pj', 'penjab.png_jawab')
+            ->orderByDesc('jumlah_kunjungan')
+            ->get();
+
+        return $this->successResponse([
+            'tanggal_awal' => $tanggalAwal,
+            'tanggal_akhir' => $tanggalAkhir,
+            'per_jenis_pembayaran' => $data,
+        ]);
+    } catch (\Exception $e) {
+        return $this->errorResponse('Terjadi kesalahan pada server');
+    }
+}
 
 
 }
